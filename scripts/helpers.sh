@@ -118,7 +118,17 @@ resurrect_file_path() {
 _RESURRECT_FILE_PATH="$(resurrect_file_path)"
 
 last_resurrect_file() {
-	echo "$(resurrect_dir)/last"
+	resurrect_link="$(resurrect_dir)/last"
+	if [ -e "$resurrect_link" ]; then
+		linked_resurrect_file=$(readlink -e "$resurrect_link")
+		if [ ! -s "$linked_resurrect_file" ]; then
+			last_valid_session_file=$(find $(resurrect_dir) -type f -name "*$RESURRECT_FILE_PREFIX*.txt" -size +100c -printf "%T+ %f\n" | sort -rn | head -n 1 | awk '{print $NF}')
+			echo changing
+			rm "$(resurrect_dir)/last"
+			ln -s $last_valid_session_file "$(resurrect_dir)/last"
+		fi
+		echo "$(resurrect_dir)/last"
+	fi
 }
 
 pane_contents_dir() {
